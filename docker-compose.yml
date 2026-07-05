@@ -9,6 +9,9 @@ services:
       - claude_config:/home/node/.claude
       - npm_global:/usr/local/lib/node_modules
       - apt_cache:/var/cache/apt
+      - gradle_cache:/home/node/.gradle
+      - m2_repo:/home/node/.m2
+      - android_sdk:/opt/android-sdk
       - ./entrypoint.sh:/entrypoint.sh:ro
     entrypoint: ["/entrypoint.sh"]
     stdin_open: true
@@ -18,3 +21,6 @@ volumes:
   claude_config:
   npm_global:
   apt_cache:
+  gradle_cache:
+  m2_repo:
+  android_sdk:

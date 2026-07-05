@@ -79,16 +79,47 @@ You can also override `HOST_WORKDIR` per invocation without editing `.env`:
 HOST_WORKDIR=/some/other/path docker compose run --rm claude-code
 ```
 
+## Java and Android projects
+
+`entrypoint.sh` also installs a JDK (OpenJDK 21 by default) and the Android
+SDK command-line tools the first time the container starts, the same
+skip-if-present pattern used for Claude Code itself:
+
+- `JAVA_HOME` is set to the installed JDK.
+- `ANDROID_HOME` / `ANDROID_SDK_ROOT` point at `/opt/android-sdk`, where the
+  cmdline-tools and `platform-tools` are installed and SDK licenses are
+  pre-accepted.
+- `GRADLE_USER_HOME` is set to `/home/node/.gradle`.
+
+Only `platform-tools` is installed up front - Gradle/Android Gradle Plugin
+auto-downloads whichever `platform;android-NN` and `build-tools;NN.N.N`
+versions a given project's `build.gradle` needs (into the same SDK volume,
+so it's cached across runs). Override the JDK version or cmdline-tools
+package with `JAVA_VERSION` / `ANDROID_CMDLINE_TOOLS_VERSION` in `.env` -
+see `.env.example`.
+
+This covers building, unit-testing, and assembling Java/Android projects
+(`./gradlew build`, `mvn test`, etc.). There's no emulator or connected
+device support - running instrumented tests or launching an app requires a
+GUI/KVM-backed emulator or a physically attached device, which this
+headless container setup doesn't provide.
+
 ## What persists across runs
 
-Three named volumes:
+Six named volumes:
 
-- `claude_config` -> `/root/.claude` - Claude Code's auth, settings, and
+- `claude_config` -> `/home/node/.claude` - Claude Code's auth, settings, and
   history.
 - `npm_global` -> `/usr/local/lib/node_modules` - the installed
   `@anthropic-ai/claude-code` package, so it isn't re-downloaded every run.
 - `apt_cache` -> `/var/cache/apt` - downloaded `.deb` packages for
-  `git`/`curl`/`ca-certificates`/`ripgrep`, so re-installs are faster.
+  `git`/`curl`/`ca-certificates`/`ripgrep`/JDK/`unzip`, so re-installs are
+  faster.
+- `gradle_cache` -> `/home/node/.gradle` - Gradle's dependency and build
+  cache.
+- `m2_repo` -> `/home/node/.m2` - Maven's local repository cache.
+- `android_sdk` -> `/opt/android-sdk` - the Android SDK cmdline-tools,
+  platform-tools, and any platforms/build-tools Gradle downloads on demand.
 
 `entrypoint.sh` skips the `apt-get`/`npm install` step entirely if `claude`
 is already on `PATH`. That fast path only kicks in for a container that's
