@@ -5,6 +5,9 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Claude Code / Ollama container secrets
+.env
+
 # Log/OS Files
 *.log
 
