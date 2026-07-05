@@ -1,6 +1,6 @@
 services:
   claude-code:
-    image: node:22-slim
+    image: node:26-slim
     env_file:
       - .env
     working_dir: /workspace
