@@ -1,0 +1,20 @@
+services:
+  claude-code:
+    image: node:22-slim
+    env_file:
+      - .env
+    working_dir: /workspace
+    volumes:
+      - ${HOST_WORKDIR:?HOST_WORKDIR must be set in .env or the environment}:/workspace
+      - claude_config:/home/node/.claude
+      - npm_global:/usr/local/lib/node_modules
+      - apt_cache:/var/cache/apt
+      - ./entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/entrypoint.sh"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude_config:
+  npm_global:
+  apt_cache:
